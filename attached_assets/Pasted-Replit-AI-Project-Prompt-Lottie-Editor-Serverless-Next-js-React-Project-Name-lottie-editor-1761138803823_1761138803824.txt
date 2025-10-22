@@ -1,0 +1,336 @@
+Replit AI Project Prompt — Lottie Editor (Serverless Next.js + React)
+🧩 Project Name
+
+lottie-editor-serverless
+
+📝 Description
+
+Build a full-featured Lottie animation editor using Next.js and React, entirely serverless (no Express, no custom Node servers).
+The project must deploy directly to Vercel — all backend logic implemented as Next.js API routes.
+
+The editor should allow users to:
+
+Upload and manage Lottie JSON or ZIPs
+
+Preview and scrub through animations
+
+Edit layer colors and opacity
+
+Apply global color palettes
+
+Optimize and batch-process animations
+
+Maintain session data serverlessly
+
+⚙️ Architecture Overview
+1️⃣ Stack
+
+Frontend: React + Next.js pages
+
+Backend: Next.js API routes (serverless)
+
+Styling: Tailwind CSS or CSS Modules
+
+Data: Stored temporarily in memory or /tmp
+
+Optional persistence: Vercel KV or S3
+
+Deployment: One-click deploy to Vercel (no custom server)
+
+2️⃣ Directory Structure
+/pages
+ ├─ index.js                → Upload & Home page
+ ├─ editor/[id].js          → Lottie Editor UI
+ └─ api/
+     ├─ upload.js
+     ├─ batch.js
+     ├─ health.js
+     ├─ file/
+     │   ├─ [id].js
+     │   ├─ [id]/metadata.js
+     │   ├─ [id]/frame/[frame].js
+     │   ├─ [id]/edit-layer.js
+     │   ├─ [id]/apply-palette.js
+     │   ├─ [id]/optimize.js
+     │   └─ [id]/export.js
+     └─ session/[sessionId]/files.js
+
+🧠 Functionalities & Flow (Detailed)
+🗂️ 1. File Uploads & Import
+
+Frontend
+
+Drag-and-drop upload area (UploadArea component)
+
+URL input field for remote JSON/ZIPs
+
+Batch upload support (up to 25 files)
+
+Displays metadata after upload (name, width, height, frame rate, etc.)
+
+Backend — /api/upload
+
+Accepts multipart/form-data or JSON body with file URLs
+
+Validates JSON or ZIP (unzip and locate data.json)
+
+Extracts metadata (layer count, frame count, width, height, framerate)
+
+Temporarily stores files in /tmp or memory buffer
+
+Returns array of uploaded files:
+
+[
+  {
+    "id": "unique-file-id",
+    "name": "animation.json",
+    "frames": 120,
+    "width": 512,
+    "height": 512,
+    "frameRate": 30
+  }
+]
+
+🖼️ 2. Canvas / Preview
+
+Frontend
+
+Uses lottie-web or lottie-player for rendering
+
+Play/pause buttons, frame slider, zoom/pan tools
+
+Gridline toggle and snapping guides
+
+Fetches Lottie data via /api/file/[id]
+
+Backend
+
+/api/file/[id] → returns full Lottie JSON
+
+/api/file/[id]/frame/[frame] → returns frame snapshot (PNG or base64)
+
+Implements optional caching for smoother scrubbing
+
+🧩 3. Layer-Based Editing
+
+Frontend
+
+LayerPanel displays all layers with checkboxes or tree structure
+
+Multi-select via Shift/Ctrl
+
+Inputs to change color, stroke, or opacity
+
+Undo/redo buttons
+
+Backend — /api/file/[id]/edit-layer
+
+{
+  "layers": ["layer1", "layer3"],
+  "properties": {
+    "fillColor": "#FF0000",
+    "strokeColor": "#00FF00",
+    "opacity": 0.75
+  }
+}
+
+
+Updates the corresponding layers in JSON
+
+Shape layers → update fill, stroke, opacity
+
+Text layers → update text/fill/stroke
+
+Groups → recursively update children
+
+Saves updated Lottie JSON in temporary session memory
+
+🎨 4. Color Templates / Palette Application
+
+Frontend
+
+PalettePicker component with color swatches
+
+Live preview of applied palette
+
+Undo/redo support
+
+Backend — /api/file/[id]/apply-palette
+
+{
+  "palette": {
+    "primary": "#FF0000",
+    "secondary": "#00FF00",
+    "accent": "#0000FF"
+  },
+  "layers": ["all"]
+}
+
+
+Applies color scheme to all or selected layers
+
+Stores palette in session memory
+
+Optionally performs accessibility contrast check
+
+⚡ 5. Optimization Logic
+
+Frontend
+
+“Optimize” button on toolbar
+
+Displays before/after stats (size, layer count, precision)
+
+Option to download optimized JSON
+
+Backend — /api/file/[id]/optimize
+
+Flattens shape hierarchies
+
+Removes hidden or empty layers
+
+Rounds off keyframe precision
+
+Compresses repeated assets
+
+Returns optimization summary:
+
+{
+  "originalSize": 12345,
+  "optimizedSize": 6789,
+  "layersBefore": 10,
+  "layersAfter": 6
+}
+
+🧮 6. Batch Operations
+
+Frontend
+
+BatchManager component to upload and manage multiple files
+
+Batch apply palettes or optimizations with progress bars
+
+Backend — /api/batch
+
+Accepts array of file IDs and operation type
+
+Processes in parallel (Promise.all)
+
+Returns per-file results:
+
+[
+  { "fileId": "1", "status": "success", "optimizedSize": 45 },
+  { "fileId": "2", "status": "error", "message": "Invalid Lottie JSON" }
+]
+
+🔐 7. Session Management
+
+Backend
+
+Every user gets a temporary sessionId
+
+All uploads, edits, palettes, and batch jobs are tied to that session
+
+Storage options:
+
+In-memory cache (default)
+
+Vercel KV or Redis (optional)
+
+S3 for persistent recovery
+
+Endpoints
+
+/api/session/[sessionId]/files → list of user’s files
+
+/api/health → { "status": "ok" }
+
+🩺 8. Health Check Endpoint
+
+Simple route: /api/health
+
+Returns:
+
+{ "status": "ok" }
+
+🧱 Frontend Structure
+Pages
+Page	Description
+index.js	Upload interface and file list
+editor/[id].js	Full-featured animation editor with canvas, layers, and palettes
+Components
+Component	Responsibility
+UploadArea	Drag-and-drop + URL upload
+Canvas	Lottie player + controls
+LayerPanel	Layer tree + selection
+PalettePicker	Palette management
+BatchManager	Batch operations UI
+🧩 Backend Structure (Serverless API Routes)
+pages/api/
+ ├─ upload.js                → Upload & metadata extraction
+ ├─ batch.js                 → Batch processing logic
+ ├─ health.js                → Health check
+ ├─ file/
+ │  ├─ [id].js               → Get Lottie JSON
+ │  ├─ [id]/metadata.js      → Get metadata
+ │  ├─ [id]/frame/[frame].js → Frame snapshot
+ │  ├─ [id]/edit-layer.js    → Layer edits
+ │  ├─ [id]/apply-palette.js → Apply palette
+ │  ├─ [id]/optimize.js      → Optimize animation
+ │  └─ [id]/export.js        → Download/export JSON
+ └─ session/[sessionId]/files.js → List session files
+
+🧰 Configuration
+next.config.js
+module.exports = {
+  reactStrictMode: true,
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb',
+    },
+  },
+};
+
+package.json
+
+Include:
+
+"dependencies": {
+  "next": "^14.0.0",
+  "react": "^18.0.0",
+  "react-dom": "^18.0.0",
+  "lottie-web": "^5.12.0",
+  "formidable": "^3.5.0",
+  "adm-zip": "^0.5.10",
+  "uuid": "^9.0.0"
+}
+
+🔄 Flow Summary
+
+User uploads → /api/upload → returns file metadata
+
+User selects file → navigates to /editor/[id]
+
+Canvas loads Lottie JSON → from /api/file/[id]
+
+User edits layers or applies palette → API updates JSON in session
+
+User optimizes or exports → serverless functions process data
+
+Batch mode → /api/batch for multiple files
+
+Session stored temporarily; persistent if configured
+
+✅ Deliverables
+
+Replit AI should generate:
+
+Next.js app with working pages and components
+
+All serverless API routes as outlined
+
+Basic UI scaffolding with Tailwind
+
+Working upload, playback, editing, palette, optimization, batch flow
+
+Ready for one-click deploy to Vercel
