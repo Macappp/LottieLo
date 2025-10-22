@@ -14,32 +14,49 @@ export default function Canvas({ animationData, onFrameChange }: CanvasProps) {
   const [totalFrames, setTotalFrames] = useState(0);
   const [showGrid, setShowGrid] = useState(false);
   const [zoom, setZoom] = useState(100);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current || !animationData) return;
-
-    if (animationRef.current) {
-      animationRef.current.destroy();
+    if (!containerRef.current) return;
+    
+    if (!animationData) {
+      setError('No animation data provided');
+      return;
     }
 
-    animationRef.current = lottie.loadAnimation({
-      container: containerRef.current,
-      renderer: 'svg',
-      loop: true,
-      autoplay: false,
-      animationData: animationData,
-    });
+    if (!animationData.layers || !Array.isArray(animationData.layers)) {
+      setError('Invalid animation data: missing layers');
+      return;
+    }
 
-    setTotalFrames(animationRef.current.totalFrames);
-    setCurrentFrame(0);
-
-    animationRef.current.addEventListener('enterFrame', () => {
+    try {
       if (animationRef.current) {
-        const frame = Math.floor(animationRef.current.currentFrame);
-        setCurrentFrame(frame);
-        onFrameChange?.(frame);
+        animationRef.current.destroy();
       }
-    });
+
+      animationRef.current = lottie.loadAnimation({
+        container: containerRef.current,
+        renderer: 'svg',
+        loop: true,
+        autoplay: false,
+        animationData: animationData,
+      });
+
+      setTotalFrames(animationRef.current.totalFrames);
+      setCurrentFrame(0);
+      setError(null);
+
+      animationRef.current.addEventListener('enterFrame', () => {
+        if (animationRef.current) {
+          const frame = Math.floor(animationRef.current.currentFrame);
+          setCurrentFrame(frame);
+          onFrameChange?.(frame);
+        }
+      });
+    } catch (err: any) {
+      console.error('Error loading animation:', err);
+      setError(err.message || 'Failed to load animation');
+    }
 
     return () => {
       animationRef.current?.destroy();
@@ -67,6 +84,24 @@ export default function Canvas({ animationData, onFrameChange }: CanvasProps) {
   const handleZoomChange = (newZoom: number) => {
     setZoom(newZoom);
   };
+
+  if (error) {
+    return (
+      <div className="canvas-container">
+        <div style={{ 
+          padding: '2rem', 
+          textAlign: 'center', 
+          color: '#dc3545',
+          background: '#f8d7da',
+          borderRadius: '8px',
+          margin: '2rem'
+        }}>
+          <h3>Error Loading Animation</h3>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="canvas-container">

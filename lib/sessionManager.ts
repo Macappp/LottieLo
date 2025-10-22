@@ -30,7 +30,15 @@ class SessionManager {
       createdAt: Date.now(),
     });
     this.cleanupOldSessions();
+    console.log(`Created session: ${sessionId}`);
     return sessionId;
+  }
+
+  getOrCreateSession(sessionId?: string): string {
+    if (sessionId && this.sessions.has(sessionId)) {
+      return sessionId;
+    }
+    return this.createSession();
   }
 
   getSession(sessionId: string): Session | undefined {
@@ -38,15 +46,24 @@ class SessionManager {
   }
 
   addFile(sessionId: string, file: LottieFile): void {
-    const session = this.sessions.get(sessionId);
-    if (session) {
-      session.files.set(file.id, file);
+    let session = this.sessions.get(sessionId);
+    if (!session) {
+      session = {
+        id: sessionId,
+        files: new Map(),
+        createdAt: Date.now(),
+      };
+      this.sessions.set(sessionId, session);
     }
+    session.files.set(file.id, file);
+    console.log(`Added file ${file.id} to session ${sessionId}. Total files: ${session.files.size}`);
   }
 
   getFile(sessionId: string, fileId: string): LottieFile | undefined {
     const session = this.sessions.get(sessionId);
-    return session?.files.get(fileId);
+    const file = session?.files.get(fileId);
+    console.log(`Getting file ${fileId} from session ${sessionId}: ${file ? 'found' : 'not found'}`);
+    return file;
   }
 
   updateFile(sessionId: string, fileId: string, data: any): void {
@@ -69,10 +86,28 @@ class SessionManager {
     for (const [sessionId, session] of this.sessions.entries()) {
       if (now - session.createdAt > this.SESSION_TIMEOUT) {
         this.sessions.delete(sessionId);
+        console.log(`Cleaned up old session: ${sessionId}`);
       }
+    }
+  }
+
+  debugSessions(): void {
+    console.log(`Total sessions: ${this.sessions.size}`);
+    for (const [sessionId, session] of this.sessions.entries()) {
+      console.log(`  Session ${sessionId}: ${session.files.size} files`);
     }
   }
 }
 
-export const sessionManager = new SessionManager();
+// Use globalThis to persist across hot reloads in development
+const globalForSessionManager = globalThis as unknown as {
+  sessionManager: SessionManager | undefined;
+};
+
+export const sessionManager = globalForSessionManager.sessionManager ?? new SessionManager();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForSessionManager.sessionManager = sessionManager;
+}
+
 export type { LottieFile, Session };

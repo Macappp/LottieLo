@@ -12,6 +12,7 @@ export default function Editor() {
   const [selectedLayers, setSelectedLayers] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'layers' | 'palette'>('layers');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -20,13 +21,34 @@ export default function Editor() {
   }, [id]);
 
   const loadAnimation = async () => {
+    setIsLoading(true);
+    setError(null);
+    
     try {
       const response = await fetch(`/api/file/${id}`);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('Animation not found. It may have expired or been deleted.');
+        } else if (response.status === 401) {
+          setError('Session expired. Please upload your file again.');
+        } else {
+          setError('Failed to load animation. Please try again.');
+        }
+        return;
+      }
+      
       const data = await response.json();
+      
+      if (!data || !data.layers) {
+        setError('Invalid animation data received.');
+        return;
+      }
+      
       setAnimationData(data);
     } catch (error) {
       console.error('Failed to load animation:', error);
-      alert('Failed to load animation');
+      setError('Network error. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -49,10 +71,12 @@ export default function Editor() {
 
       if (response.ok) {
         await loadAnimation();
+      } else {
+        alert('Failed to update properties. Please try again.');
       }
     } catch (error) {
       console.error('Failed to update properties:', error);
-      alert('Failed to update properties');
+      alert('Failed to update properties. Please try again.');
     }
   };
 
@@ -69,10 +93,12 @@ export default function Editor() {
 
       if (response.ok) {
         await loadAnimation();
+      } else {
+        alert('Failed to apply palette. Please try again.');
       }
     } catch (error) {
       console.error('Failed to apply palette:', error);
-      alert('Failed to apply palette');
+      alert('Failed to apply palette. Please try again.');
     }
   };
 
@@ -85,12 +111,16 @@ export default function Editor() {
         headers: { 'Content-Type': 'application/json' },
       });
 
-      const stats = await response.json();
-      alert(`Optimized! Size reduced by ${stats.reductionPercent}%`);
-      await loadAnimation();
+      if (response.ok) {
+        const stats = await response.json();
+        alert(`Optimized! Size reduced by ${stats.reductionPercent}%`);
+        await loadAnimation();
+      } else {
+        alert('Failed to optimize. Please try again.');
+      }
     } catch (error) {
       console.error('Failed to optimize:', error);
-      alert('Failed to optimize');
+      alert('Failed to optimize. Please try again.');
     }
   };
 
@@ -103,6 +133,30 @@ export default function Editor() {
       <div className="loading-screen">
         <div className="spinner"></div>
         <p>Loading animation...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="loading-screen">
+        <div style={{ 
+          textAlign: 'center',
+          maxWidth: '500px',
+          padding: '2rem',
+          background: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+        }}>
+          <h2 style={{ color: '#dc3545', marginBottom: '1rem' }}>Error</h2>
+          <p style={{ marginBottom: '2rem' }}>{error}</p>
+          <button 
+            onClick={() => router.push('/')} 
+            className="btn-primary"
+          >
+            Go Back to Home
+          </button>
+        </div>
       </div>
     );
   }

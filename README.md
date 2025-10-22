@@ -1,24 +1,70 @@
-Welcome to the NextJS base template bootstrapped using the `create-next-app`. This template supports TypeScript, but you can use normal JavaScript as well.
+# Lottie Animation Editor
 
-## Getting Started
+A professional Lottie animation editor built with Next.js and React, featuring a beautiful Canva-like UI.
 
-Hit the run button to start the development server.
+## ✨ Features
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+- **File Upload**: Drag-and-drop, multi-file upload, URL import, ZIP support
+- **Animation Canvas**: Play/pause, frame scrubbing, zoom (25%-200%), grid overlay
+- **Layer Editing**: Multi-select layers, edit colors and opacity with real-time preview
+- **Color Palettes**: 5 presets + custom palettes
+- **Optimization**: Remove hidden layers, reduce file size
+- **Batch Operations**: Bulk optimize and apply palettes to multiple files
+- **Export**: Download edited animations as JSON
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on `/api/hello`. This endpoint can be edited in `pages/api/hello.ts`.
+## 🚀 Getting Started
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+1. **Upload a Lottie File**
+   - Drag and drop a `.json` or `.zip` file
+   - Or paste a URL to a Lottie animation
+   - Try the sample file: `/public/sample-lottie.json`
 
-## Learn More
+2. **Edit Your Animation**
+   - Click "Open Editor" on any uploaded file
+   - Select layers and modify colors/opacity
+   - Apply color palettes for quick styling
+   - Use the canvas controls to preview changes
 
-To learn more about Next.js, take a look at the following resources:
+3. **Export**
+   - Click "Optimize" to reduce file size
+   - Click "Export" to download your edited animation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎨 Test the Editor
 
-## Productionizing your Next App
+You can test with the included sample animation at `public/sample-lottie.json` or any Lottie file from [LottieFiles](https://lottiefiles.com/).
 
-To make your next App run smoothly in production make sure to deploy your project with [Repl Deployments](https://docs.replit.com/hosting/deployments/about-deployments)!
+## 📚 API Endpoints
 
-You can also produce a production build by running `npm run build` and [changing the run command](https://docs.replit.com/programming-ide/configuring-repl#run) to `npm run start`.
+- `POST /api/upload` - Upload files
+- `GET /api/file/[id]` - Get animation data
+- `POST /api/file/[id]/edit-layer` - Edit layer properties
+- `POST /api/file/[id]/apply-palette` - Apply color palette
+- `POST /api/file/[id]/optimize` - Optimize animation
+- `GET /api/file/[id]/export` - Download animation
+- `POST /api/batch` - Batch operations
+
+## 🛠️ Built With
+
+- **Next.js 15** - React framework with serverless API routes
+- **React 19** - UI library
+- **lottie-web** - Animation rendering
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+
+## 📝 Notes
+
+- Data is stored in memory during development (clears on server restart)
+- For production, consider adding persistent storage (Vercel KV, PostgreSQL, Redis)
+- Sessions expire after 24 hours
+
+## 🚢 Deploy to Production
+
+Ready to deploy? This app is designed for serverless deployment:
+
+1. **Vercel** (Recommended): One-click deployment
+2. Add persistent storage for production use
+3. Consider adding user authentication
+
+---
+
+Built with ❤️ using Next.js and React
