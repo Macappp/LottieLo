@@ -53,31 +53,35 @@ export default function PalettePicker({ onApplyPalette }: PalettePickerProps) {
         <h3>Color Palettes</h3>
       </div>
 
+      {/* Presets Section */}
       <div className="preset-palettes">
         <h4>Presets</h4>
-        {PRESET_PALETTES.map((palette, index) => (
-          <div
-            key={index}
-            className="palette-preset"
-            onClick={() => applyPresetPalette(palette)}
-          >
-            <span className="palette-name">{palette.name}</span>
-            <div className="palette-colors">
-              {Object.values(palette.colors).map((color, i) => (
-                <div
-                  key={i}
-                  className="color-swatch"
-                  style={{ backgroundColor: color }}
-                />
-              ))}
+        <div className="preset-list">
+          {PRESET_PALETTES.map((palette, index) => (
+            <div
+              key={index}
+              className="palette-preset hover-scale"
+              onClick={() => applyPresetPalette(palette)}
+            >
+              <span className="palette-name">{palette.name}</span>
+              <div className="palette-colors">
+                {Object.values(palette.colors).map((color, i) => (
+                  <div
+                    key={i}
+                    className="color-swatch"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
+      {/* Custom Palette Section */}
       <div className="custom-palette">
         <h4>Custom Palette</h4>
-        
+
         {Object.entries(customPalette).map(([key, value]) => (
           <div key={key} className="property-group">
             <label>{key.charAt(0).toUpperCase() + key.slice(1)}</label>
@@ -86,6 +90,7 @@ export default function PalettePicker({ onApplyPalette }: PalettePickerProps) {
                 type="color"
                 value={value}
                 onChange={(e) => handleColorChange(key, e.target.value)}
+                className="color-picker hover-scale"
               />
               <input
                 type="text"
@@ -97,10 +102,121 @@ export default function PalettePicker({ onApplyPalette }: PalettePickerProps) {
           </div>
         ))}
 
-        <button onClick={applyCustomPalette} className="btn-primary btn-block">
+        <button onClick={applyCustomPalette} className="btn-primary btn-block hover-scale">
           Apply Custom Palette
         </button>
       </div>
+
+      {/* Styles */}
+      <style jsx>{`
+        .palette-picker {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          padding: 16px;
+          background: #f8f9fa;
+          border-radius: 12px;
+          width: 350px;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .panel-header h3 {
+          margin: 0;
+        }
+
+        h4 {
+          margin-bottom: 8px;
+        }
+
+        .preset-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .palette-preset {
+          display: flex;
+          flex-direction: column;
+          padding: 8px;
+          border-radius: 8px;
+          cursor: pointer;
+          background: #ffffff;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+          transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .palette-preset:hover {
+          transform: scale(1.02);
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .palette-name {
+          font-weight: 500;
+          margin-bottom: 4px;
+        }
+
+        .palette-colors {
+          display: flex;
+          gap: 4px;
+        }
+
+        .color-swatch {
+          width: 28px;
+          height: 28px;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+          transition: transform 0.2s;
+        }
+
+        .color-swatch:hover {
+          transform: scale(1.2);
+        }
+
+        .custom-palette {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .property-group {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .color-input-group {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .color-text {
+          flex: 1;
+          padding: 4px 8px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+
+        .btn-primary {
+          padding: 8px 12px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          background: #28a745;
+          color: white;
+          font-weight: 600;
+          font-size: 1rem;
+          transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn-block {
+          width: 100%;
+        }
+
+        .hover-scale:hover {
+          transform: scale(1.05);
+        }
+      `}</style>
     </div>
   );
 }
